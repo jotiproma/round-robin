@@ -1,0 +1,84 @@
+process = [
+    ["p1", 0, 7],
+    ["p2", 1, 4],
+    ["p3", 2, 15],
+    ["p4", 3, 11],
+    ["p5", 4, 20],
+    ["p6", 4, 9]
+]
+
+curr_time = 0
+total_tat = 0
+total_wt = 0
+
+gantt = []
+ready = []
+result = []
+
+time_quant = 5
+
+original_burst = {p[0]: p[2] for p in process}
+
+process.sort(key=lambda x: x[1])
+
+remaining = {p[0]: p[2] for p in process}
+
+i = 0
+
+while len(result) < len(process):
+
+    while i < len(process) and process[i][1] <= curr_time:
+        ready.append(process[i])
+        i += 1
+
+    if not ready:
+        curr_time = process[i][1]
+        continue
+
+    curr_p = ready.pop(0)
+
+    p = curr_p[0]
+
+    burst = min(time_quant, remaining[p])
+
+    curr_time += burst
+    remaining[p] -= burst
+
+    gantt.append(p)
+
+    while i < len(process) and process[i][1] <= curr_time:
+        ready.append(process[i])
+        i += 1
+
+    if remaining[p] > 0:
+        ready.append(curr_p)
+
+    else:
+        ct = curr_time
+        tat = ct - curr_p[1]
+        wt = tat - original_burst[p]
+
+        total_tat += tat
+        total_wt += wt
+
+        result.append([
+            p,
+            curr_p[1],
+            original_burst[p],
+            ct,
+            tat,
+            wt
+        ])
+
+result.sort()
+
+print("Process\tAT\tBT\tCT\tTAT\tWT")
+
+for r in result:
+    print(f"{r[0]}\t{r[1]}\t{r[2]}\t{r[3]}\t{r[4]}\t{r[5]}")
+
+print("\nAverage TAT =", total_tat / len(result))
+print("Average WT  =", total_wt / len(result))
+
+print("\nGantt Chart:")
+print(gantt)
